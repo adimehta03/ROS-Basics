@@ -1,0 +1,27 @@
+<launch>
+    <node 
+        pkg="turtlesim"
+        type="turtlesim_node"
+        name="turtlesim"
+        respawn="true"
+    />
+    <!-- <node 
+        pkg="turtlesim"
+        type="turtle_teleop_key"
+        name="teleop_key"
+        required="true"
+        launch-prefix="xterm -e"
+    /> -->
+    <node 
+        pkg="agitr"
+        type="subscribe_pose"
+        name="subscribe_to_pose"
+        output="screen"
+    />
+    <node 
+        pkg="agitr"
+        type="randomv"
+        name="random_velocity_generator"
+        output="screen"
+    />
+</launch>
