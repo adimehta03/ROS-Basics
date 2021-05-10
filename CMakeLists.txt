@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0.2)
 project(agitr)
 
-find_package(catkin REQUIRED roscpp geometry_msgs)
+find_package(catkin REQUIRED roscpp geometry_msgs turtlesim)
 
 catkin_package()
 
@@ -22,3 +22,6 @@ target_link_libraries(subscribe_pose ${catkin_LIBRARIES})
 
 add_executable(reverse_vel src/reverse_cmd_vel.cpp)
 target_link_libraries(reverse_vel ${catkin_LIBRARIES})
+
+add_executable(publevel_toggle src/publevel_toggle.cpp)
+target_link_libraries(publevel_toggle ${catkin_LIBRARIES})

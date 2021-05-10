@@ -2,7 +2,7 @@
 First create your workspace, after creating workspace go to src and use 
 ```catkin_create_pkg package-name dependenices seperated by space```
 and go back to root and do ```source devel/setup.bash```, after which run ```catkin_make```.
-<br><b>NOTE:</b> The difference between CPP and PY files is that for CPP you have to include the excec in the CMake so that the compiler knows it is a CPP file to be converted to an executable. If it is a PY file then you don't have to do anything except for making the file executable by using the following command <br>```chmod 777 <b>$path/to/file</b>```<br>
+<br>**NOTE:** The difference between CPP and PY files is that for CPP you have to include the excec in the CMake so that the compiler knows it is a CPP file to be converted to an executable. If it is a PY file then you don't have to do anything except for making the file executable by using the following command <br>```chmod 777 **$path/to/file**```<br>
 Go to CMakeLists.txt -> <br>
 ```
 find_package(catkin REQUIRED dependencies like roscpp rospy)
@@ -114,7 +114,7 @@ rosrun agitr randomv
 ```
 in another terminal obvi rofl
 
-<b>Errors faced</b><br>
+**Errors faced**<br>
 1. Valid Characters Error => Cannot use ```.``` in the name of the package in cpp file.
 
 # ROS 3
@@ -164,15 +164,15 @@ rosrun agitr randomv
 ```
 in another terminal :)
 
-<b>Errors faced</b><br>
+**Errors faced**<br>
 1. Initially used poseMessageReceive() instead of a pointer: Basically we use pointer because we only want the address of the function and not actually want to call the function!
 
 We can also use poseMessageReceive without the ```&``` -> compiler will interpret it as a pointer itself!
 
-<b>The question of whether to use ros::spinOnce() or ros::spin() comes down to this: Does your program have any repetitive work to do, other than responding to callbacks? If the
+**The question of whether to use ros::spinOnce() or ros::spin() comes down to this: Does your program have any repetitive work to do, other than responding to callbacks? If the
 answer is “No,” then use ros::spin(). If the answer is “Yes,” then a reasonable option is to
 write a loop that does that other work and calls ros::spinOnce() periodically to process
-callbacks!</b>
+callbacks!**
 
 <hr>
 
@@ -267,12 +267,12 @@ To remap names within a launch fie, use a remap element in the node attribute -
 1. So basically in the [example.launch](launch/example.launch)
  for pkg = "agitr" I had initially put the name of the file -> subscriber.cpp, it doesn't work because it expects an executable-file for that cpp.
 2. Use the executable-name used in the [CMake](CMakeLists.txt), i.e, subscribe_pose
-3. The name can be anything as it will replace the base_name defined in the <i>ros::init();</i>
+3. The name can be anything as it will replace the base_name defined in the *ros::init();*
 
 ## Program that subscribes to turtle1/cmd_vel and republishes on turtle1/cmd_vel_reversed
 
 1. Write the [program](src/reverse_cmd_vel.cpp)
-2. To include the contents of another launch file, including all of its nodes and parameters, use an <i>include</i> element
+2. To include the contents of another launch file, including all of its nodes and parameters, use an *include* element
 
 ```
 <include file="$(find package-name)/launch-file-name" />
@@ -317,4 +317,159 @@ bool ros::param::get(parameter_name, output_value);
 
 # ROS 8: Services
 
-Alternate method of communication apart from messages are <i>service calls</i>. It eliminates the limitations that <i>messages</i> have.
+Alternate method of communication apart from messages are *service calls*. It eliminates the limitations that *messages* have.
+
+**Service Calls differ from messages in two ways**
++ Service calls are bi-directional
+> One node sends info to another node and expects a respone, while when a message is published, there is no response, in fact there is no guarantee if anyone has subsribed to the messages.
+
++ Service Calls implement **one-to-one** communication. 
+> Each service call is initiated by one node, and the response goes back to that same node. On the other hand, each message is associated with a topic that have many publishers and many subscribers.
+
+
+Client ---> Server = Request
+> Client node sends some data(request) to the server node and waits for the reply(response), now the server takes some action(running a program, computing something, configuring) for the request. 
+
+Server ---> Client = Response
+> This "computed" data is sent back to the client as a response
+
+### Service data type is defined by collection of named fields divided into two parts ->
++ Representing the request
++ Response
+
+### Listing all services - ```rossservice list```
+
+### Listing services by node - To see the services offered by one particular node, use the rosnode info command:
+```rosnode info node-name```
+
+### Finding a node offering a service - ```rosservice node service-name```
+
+### Finding dtype of a service - ```rosservice info service-name```
+
+## Now lets say we want to write a service that spawns a turtle and moves forward when called the service and rotates when called again.
+
+So we write a client and server code ->
+
+**CLIENT CODE**-
+```
+#include<ros/ros.h>
+#include<turtlesim/Spawn.h>
+
+int main(int argc, char **argv){
+    ros::init(argc, argv, "spawn_turtle");
+    ros::NodeHandle nh;
+
+    ros::ServiceClient spawnClient = nh.serviceClient<turtlesim::Spawn>("spawn");
+    //In this we dont use queue because only  if we get a request we send the resonse
+
+
+    turtlesim::Spawn::Request req;
+    turtlesim::Spawn::Response resp; 
+
+    //turtlesim::Spawn(package_name::service_type) is actually a struct ->
+    // Response and Request are data members. An object from this struct is called as a srv
+    // typedef struct turtlesim::Spawn{
+    //     Request <obj_name>;
+    //     Response <obj_name>;
+    // } something like this
+
+
+    req.x = 2; req.y = 3;
+    req.theta = M_PI/2;
+    req.name = "Leo";
+
+    bool success = spawnClient.call(req,resp); //locating the server node, transmitting the request data, waiting for a response and storing the response data
+
+    if(success){
+        ROS_INFO_STREAM("Spawned a turtle named "<<resp.name);
+    } else{
+        ROS_ERROR_STREAM("Failed to spawn.");
+    }
+}
+```
+**SERVER CODE** -
+```
+#include <ros/ros.h>
+#include <std_srvs/Empty.h>
+#include <geometry_msgs/Twist.h>
+
+bool forward = true;
+bool toggleForward(
+    std_srvs::Empty::Request &req,
+    std_srvs::Empty::Response &resp
+){
+    forward = !forward;
+    ROS_INFO_STREAM("Now sending "<<(forward ? "forward":"rotate")<<" commands..");
+    return true;
+}
+
+int main(int argc, char **argv)
+{
+    ros::init(argc, argv, "publevel_toggle");
+    ros::NodeHandle nh;
+
+    ros::ServiceServer server = nh.advertiseService("toggle_forward", &toggleForward);
+
+    ros::Publisher pub = nh.advertise<geometry_msgs::Twist>("turtle1/cmd_vel",1000);
+    ros::Rate rate(2);
+
+    while(ros::ok()){
+        geometry_msgs::Twist msg;
+        msg.linear.x = forward?1.0:0.0;
+        msg.angular.z = forward?0.0:1.0;
+
+        pub.publish(msg);
+
+    ros::spinOnce(); //ROS executes the callback function once for each service call that our node receives.
+    //because we have other work to do—specifically, publishing velocity commands—when there are no incoming service calls to process.
+    rate.sleep();
+    }
+}
+```
+
+*In CMakeLists.txt*->
+```
+find_package(catkin REQUIRED roscpp turtlesim)
+add_executable(publevel_toggle src/publevel_toggle.cpp)
+target_link_libraries(publevel_toggle ${catkin_LIBRARIES})
+```
+*In package.xml*->
+```
+  <build_depend>turtlesim</build_depend> 
+  <exec_depend>turtlesim</exec_depend>
+```
+In seperate terminals ->
+```
+roscore
+rosrun turtlesim turtlesim_node
+rosrun agitr publevel_toggle
+rosservice call /toggle_forward
+```
+<hr>
+
+# ROS 9: Recording and replaying messages using bag files
+
+With rosbag, we can **record** the messages published on one or more topics to a file, and then later **replay** those messages.
+
+The term **bag file** refers to a specially formatted file that stores timestamped ROS messages.
+
+**Recording bag files**: ```rosbag record [parameters]```
+**Replaying bag files**: ```rosbag info filename.bag```
+
+## Demonstration -
+```
+roscore
+rosrun turtlesim turtlesim_node
+rosrun turtlesim draw_square
+```
+draws a square continously
+```rosbag record -O square.bag /turtle1/cmd_vel /turtle1/pose```
+Records the messages into square.bag file
+```rosbag play square.bag```
+> On playing the rosbag play you'll notice that the turtle will not exactly trace the path of the turtle, instead it'll make a square in a random direction. This is because rosbag only replicates a sequence of messages. It does not replicate the initial conditions.
+
+**NOTE: If we check the messages published on the /turtle1/pose we say that there is a large in the y coordinates. Its because both turtlesim and rosbag play are publishing on the same topic**
+
+<hr>
+
+# ROS 10
