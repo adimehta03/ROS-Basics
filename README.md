@@ -148,15 +148,9 @@ source devel/setup.bash
 catkin_make
 cd ~/catkin-ws/src/agitr/src/
 touch hello.cpp
-Write the required code.
-#include <ros/ros.h>
-
-int main(int argc, char **argv){
-    ros::init(argc, argv, "hello_cpp");
-    ros::NodeHandle nh;
-    ROS_INFO_STREAM("HELLO ROS!");
-}
 ```
+Write the required [code](src/hello.cpp).
+
 In CMakeLists.txt ->
 ```bash
 find_package(catkin REQUIRED dependencies roscpp)
@@ -183,36 +177,8 @@ rosrun agitr hello
 # ROS 2: Publisher
 ## How to send randomly-generated velocity commands to a turtlesim turtle?
 
-First, create the required cpp file, write the required code->
-```bash
-#include <ros/ros.h>
-#include <geometry_msgs/Twist.h>
-#include <stdlib.h> //for rand and RAND_MAX
+First, create the required cpp file, write the required [code](src/random_vel.cpp)->
 
-int main(int argc, char **argv){
-    ros::init(argc, argv, "publish_velocity");
-    ros::NodeHandle nh;
-    
-    ros::Publisher pub = nh.advertise<geometry_msgs::Twist>("turtle1/cmd_vel", 1000);
-    srand(time(0));
-
-    ros::Rate rate(2);
-    int count = 0;
-    while(ros::ok()){
-        geometry_msgs::Twist msg;
-        msg.linear.x =  double(rand())/double(RAND_MAX);
-        msg.angular.z = 2*double(rand())/double(RAND_MAX) - 1;;
-        
-        
-        pub.publish(msg);
-
-        ROS_INFO_STREAM("Sending random velocity commad:"<<"linear="<<msg.linear.x<<"angular="<<msg.angular.z);
-
-        rate.sleep();
-    }
-
-}
-```
 Go to the CMakeLists ->
 ```
 find_package(catkin REQUIRED dependencies roscpp geometry_msgs)
@@ -243,29 +209,13 @@ in another terminal obvi rofl
 
 # ROS 3: Subscriber
 ## Subscribe to pose 
-First, create the required cpp file, write the required code->
-```bash
-#include <ros/ros.h>
-#include <turtlesim/Pose.h>
-#include <iomanip> //for setprecision and setfixed
+First, create the required cpp file, write the required [code](src/subscriber.cpp)->
 
-void poseMessageReceive(const turtlesim::Pose &msg){
-    ROS_INFO_STREAM(std::setprecision(2)<<std::fixed<<"Position=("<<msg.x<<","<<msg.y<<")"<<" direction="<<msg.theta);
-}
-
-int main(int argc, char **argv){
-    ros::init(argc, argv, "subscribe_to_pose");
-    ros::NodeHandle nh;
-
-    ros::Subscriber sub = nh.subscribe("turtle1/pose", 1000, &poseMessageReceive);
-
-    ros::spin();
-}
-```
 While creating a ros::Subscriber object, we do not explicitly
 mention the message type anywhere. The C++ compiler infers the correct message type based on the data type of the callback
 function pointer we provide, i.e, poseMessageRececive
 <br>
+
 ### Go to the CMakeLists ->
 ```
 add_executable(subscribe_pose src/subscriber.cpp)
@@ -293,10 +243,7 @@ in another terminal :)
 
 We can also use poseMessageReceive without the ```&``` -> compiler will interpret it as a pointer itself!
 
-**The question of whether to use ros::spinOnce() or ros::spin() comes down to this: Does your program have any repetitive work to do, other than responding to callbacks? If the
-answer is “No,” then use ros::spin(). If the answer is “Yes,” then a reasonable option is to
-write a loop that does that other work and calls ros::spinOnce() periodically to process
-callbacks!**
+**The question of whether to use ros::spinOnce() or ros::spin() comes down to this: Does your program have any repetitive work to do, other than responding to callbacks? If the answer is “No,” then use ros::spin(). If the answer is “Yes,” then a reasonable option is to write a loop that does that other work and calls ros::spinOnce() periodically to process callbacks!**
 
 <hr>
 
@@ -474,82 +421,8 @@ Server ---> Client = Response
 
 So we write a client and server code ->
 
-**CLIENT CODE**-
-```bash
-#include<ros/ros.h>
-#include<turtlesim/Spawn.h>
-
-int main(int argc, char **argv){
-    ros::init(argc, argv, "spawn_turtle");
-    ros::NodeHandle nh;
-
-    ros::ServiceClient spawnClient = nh.serviceClient<turtlesim::Spawn>("spawn");
-    //In this we dont use queue because only  if we get a request we send the resonse
-
-
-    turtlesim::Spawn::Request req;
-    turtlesim::Spawn::Response resp; 
-
-    //turtlesim::Spawn(package_name::service_type) is actually a struct ->
-    // Response and Request are data members. An object from this struct is called as a srv
-    // typedef struct turtlesim::Spawn{
-    //     Request <obj_name>;
-    //     Response <obj_name>;
-    // } something like this
-
-
-    req.x = 2; req.y = 3;
-    req.theta = M_PI/2;
-    req.name = "Leo";
-
-    bool success = spawnClient.call(req,resp); //locating the server node, transmitting the request data, waiting for a response and storing the response data
-
-    if(success){
-        ROS_INFO_STREAM("Spawned a turtle named "<<resp.name);
-    } else{
-        ROS_ERROR_STREAM("Failed to spawn.");
-    }
-}
-```
-**SERVER CODE** -
-```bash
-#include <ros/ros.h>
-#include <std_srvs/Empty.h>
-#include <geometry_msgs/Twist.h>
-
-bool forward = true;
-bool toggleForward(
-    std_srvs::Empty::Request &req,
-    std_srvs::Empty::Response &resp
-){
-    forward = !forward;
-    ROS_INFO_STREAM("Now sending "<<(forward ? "forward":"rotate")<<" commands..");
-    return true;
-}
-
-int main(int argc, char **argv)
-{
-    ros::init(argc, argv, "publevel_toggle");
-    ros::NodeHandle nh;
-
-    ros::ServiceServer server = nh.advertiseService("toggle_forward", &toggleForward);
-
-    ros::Publisher pub = nh.advertise<geometry_msgs::Twist>("turtle1/cmd_vel",1000);
-    ros::Rate rate(2);
-
-    while(ros::ok()){
-        geometry_msgs::Twist msg;
-        msg.linear.x = forward?1.0:0.0;
-        msg.angular.z = forward?0.0:1.0;
-
-        pub.publish(msg);
-
-    ros::spinOnce(); //ROS executes the callback function once for each service call that our node receives.
-    //because we have other work to do—specifically, publishing velocity commands—when there are no incoming service calls to process.
-    rate.sleep();
-    }
-}
-```
+[CLIENT CODE](src/spawn_turtle.cpp)-
+[SERVER CODE](src/publevel_toggle.cpp)
 
 *In CMakeLists.txt*->
 ```
@@ -595,3 +468,96 @@ Records the messages into square.bag file
 **NOTE: If we check the messages published on the /turtle1/pose we say that there is a large in the y coordinates. Its because both turtlesim and rosbag play are publishing on the same topic**
 
 <hr>
+
+# ROS 10: OpenCV and ROS
+
+Images are collected by topics that are published by drivers of the camera. So we need to create subscriber in order to receive the image and send to OpenCV for processing. The image format supported by ROS != image supported by OpenCV => CVBridge
+
+> Topic -> ROS Image Message <---> CV Bridge <---> OpenCV cv::Mat
+
+Architecture 👆
+
+### Subscribing to the topic -  */usb_cam/image_raw*
+[Subscriber Code in Python](src/scripts/image_pub_sub.py)
+
+### To turn on the camera -
+```rosrun usb_cam usb_cam_node _pixel_format:=yuyv```
+
+### Execute the script -
+```bash
+catkin_make
+chmod 777 ~/catkin_ws/src/agitr/src/image_pub_sub.py
+rosrun agitr image_pub_sub.py
+```
+---
+# ROS 11: Threshold
+
+##  Simple threshold -> 
+if a point(x,y) in the image is > than a threshold value then black else white. It is not effective in all the cases(example bad lighting) so we use Adaptive Thresholding
+
+*Syntax* - ```cv2.threshold(image, threshold_value, 255, cv2.Simple_Threshold_Method)```
+
+Different Simple Threshold Methods - 
+![Simple Threshold Methods](images/simple_threshold_methods.png)
+
+## Adaptive Threshold -
+The algo calculates the threshold for a small region of the image 
+Adaptive Method Types -
+1. Adaptive Threshold Mean - threshold value is the mean of the neighbourhood area
+2. Adative Threshold Gaussian - threshold value is the weighted sum of neighborhood values where weights are a gaussian window
+
+*Syntax* - 
+```
+cv2.adaptive_thresholding(gray_image, 255, adaptive_method, block_size, c)
+```
+> block_size - size of neighborhood area; c - correction factor 
+
+---
+
+# ROS 12: Contour Detection and Ball Tracking
+
+Contours are basically a curve joining all the continous points, works by detecting discontinuities in brightness. 
+Generally used to find the boundaries of objects within images.
+Algo ->
++ Read image as RGB
++ Convert img to grayscale
++ Convert gray image to binary
++ Find the the contours using ```cv2.findContours()``` on the binary image
++ Process the contours <=> finding its area, enclosing circle, perimeter, moment and centroid
+
+Based on contours hierarchy, there are different methods to find a contour! Commonly used ```retr_list```
+
+[Code](src/scripts/contours_detection.py)
+
+## Processing Contours by finding area, centroid, etc - 
+[Code](src/scripts/contours_processing.py)
+
+## Ball detection - 
+Essentially, its the same as contour processing, excep that we use a if condition to filter out contours and add relevant lower and upper bound to mask.
+[Code](src/scripts/ball_detection.py)
+
+## Ball Tracking - 
+Instead of using pictures(frames), we breakdown the livestream/video into frames and process them manually.
+[Code](src/scripts/ball_tracking.py)
+
+# ROS 13: Subscribing and Publishing Live Stream Videos in ROS
+
+We do this using CvBridge and OpenCV, but this time in C++, because when we are doing real time execution it is worth the pain using C++.
+[Code](src/image_pub_sub.cpp)
+To run this program, we'll have to do the following -
+```
+roscore
+rosrun usb_cam usb_cam_node _pixel_format:=yuyv image:=/camera/image-raw
+rosrun image_view image_view_node image:=/usb_camera_node/image_raw
+rosrun agitr image_pub_sub_cpp image:=/usb_camera_node/image_raw
+rosrun image_view image_view2_node image:=/usb_camera_node/output_video
+```
+So instead of running so many things in 5 terminals simultaneously, we use [Launch Files](#ROS-6:-Launch-Files:) in order to put these commands into a launch file we make node attributes like in our [example.launch](launch/example.launch).
+
+[Image Pub Sub Launch File](launch/image_pub_sub.launch)
+
+So now instead of running the 5 commands we run only one command, i.e,
+```
+roslaunch agitr image_pub_sub.launch
+```
+That's it.
