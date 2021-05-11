@@ -562,8 +562,10 @@ roslaunch agitr image_pub_sub.launch
 ```
 That's it.
 
-### Source:
-[A Gentle Introduction to ROS](https://cse.sc.edu/~jokane/agitr/agitr-letter.pdf)
-[Anis Koubaa - ROS Essentials](https://www.udemy.com/course/ros-essentials/)
-[Wiki ROS](http://wiki.ros.org/)
-and a lot of [stackoverflow](https://stackoverflow.com/)
+---
+
+##### Source:
++ [A Gentle Introduction to ROS](https://cse.sc.edu/~jokane/agitr/agitr-letter.pdf)
++ [Anis Koubaa - ROS Essentials](https://www.udemy.com/course/ros-essentials/)
++ [Wiki ROS](http://wiki.ros.org/)
++ and a lot of [stackoverflow](https://stackoverflow.com/)
