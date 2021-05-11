@@ -1,4 +1,128 @@
-# ROS 1
+# Install ROS Melodic on Ubuntu 18.04 - 
+*NOTE: Different Ubuntu Versions support different ROS Distributions. <br>Eg: Ubuntu 16.04 - Kinetic, Ubuntu 18.04 - Melodic and Ubuntu 20.04 - Noetic*
+```bash
+sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
+
+sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
+
+curl -sSL 'http://keyserver.ubuntu.com/pks/lookup?op=get&search=0xC1CF6E31E6BADE8868B172B4F42ED6FBAB17C654' | sudo apt-key add -
+
+sudo apt update
+
+sudo apt install ros-melodic-desktop-full
+```
+## Setup Environment
+
+```bash 
+echo "source /opt/ros/melodic/setup.bash" >> ~/.bashrc
+source ~/.bashrc
+```
+
+## Dependenices Required to Build Packages
+```bash
+sudo apt install python-rosdep python-rosinstall python-rosinstall-generator python-wstool build-essential
+```
+Initialise rosdep, which is a tool for checking and installing package dependencies in an OS-independent way -
+```bash
+sudo rosdep init
+rosdep update
+```
+
+## Setting up catkin workspace
+
+```bash
+source /opt/ros/melodic/setup.bash
+mkdir ~/catkin_ws/src
+cd ~/catkin_ws/src
+catkin_init_workspace
+```
+
+To build workspace:
+```bash
+cd ~/catkin_ws/
+catkin_make
+```
+
+Sourcing ROS environment variables
+```bash
+source ~/catkin_ws/devel/setup.bash
+echo $ROS_PACKAGE_PATH # make sure proper environment variables set
+```
+
+##  Creating catkin package
+
+```bash
+cd ~/catkin_ws/src
+# catkin_create_pkg <package_name> [depend1] [depend2] [depend3]
+cd ~/catkin_ws
+catkin_make
+```
+
+This will create a similar structure in `~/catkin_ws/devel` as found in `/opt/ros/$ROSDISTRO_NAME`
+
+Sourcing built workspace to ROS environment:
+```bash
+~/catkin_ws/devel/setup.bash
+```
+
+## Building packages in catkin workspace 
+```
+catkin_make
+```
+
+This will build any packages in the source space (~/catkin_ws) to the build space (~/catkin_ws/build)
+
+<hr>
+
+# ROS Concepts
+
+## Master
+One of the basic goals of ROS is to allow developers to write software as a collection of independent small programs that are called as **nodes** that all run simultaneously. 
+<br>
+*For example, in a self-driving car, the movement, image processing, etc. run simultaneously during the drive. These are controlled by independent programs called **nodes**.*
+For these nodes to work, they must be able to communicate with each other. This is done through something called as **ROS Master**.
+<br>To start master - 
+```
+roscore
+```
+You should allow the master to continue running for the entire time that you’re using ROS. One reasonable workflow is to start roscore in one terminal, then open other terminals to continue. There are not many reasons to stop roscore, except when you’ve finished working with ROS. When you reach that point, you can stop the master by typing Ctrl-C in its terminal.
+
+**Most ROS nodes connect to the master when they start up, and do not attempt to reconnect if that connection fails later on. Therefore, if you stop roscore, any other nodes running at the time will be unable to establish new connections, even if you restart roscore later.**
+
+<hr>
+
+
+# ROS Packages
+
+## What makes up a catkin package?
+
+```
+my_package/
+  CMakeLists.txt
+  package.xml
+```
+
+`package.xml` provides meta information about the package(name, version, maintainer, and dependencies).
+`CMakeLists.txt` contains build instructions for CMake, and must use catkin CMake variables.
+
+## Recommended development flow
+
+Maintain a single development workspace, called 'catkin workspace', containing all catkin packages. Aliased as `catkin_ws` by `setup.bash` (see next section).
+
+```bash
+workspace_folder/        -- WORKSPACE
+  src/                   -- SOURCE SPACE
+    CMakeLists.txt       -- 'Toplevel' CMake file, provided by catkin
+    package_1/
+      CMakeLists.txt     -- CMakeLists.txt file for package_1
+      package.xml        -- Package manifest for package_1
+    ...
+    package_n/
+      CMakeLists.txt     -- CMakeLists.txt file for package_n
+      package.xml        -- Package manifest for package_n
+```
+
+# ROS 1: Hello World in ROS!
 First create your workspace, after creating workspace go to src and use 
 ```catkin_create_pkg package-name dependenices seperated by space```
 and go back to root and do ```source devel/setup.bash```, after which run ```catkin_make```.
@@ -16,7 +140,7 @@ Go to package.xml -><br>
  Once this is done, then we can run roscore and rosrun for the respective publisher and subscriber.<br>```rosrun package-name(project name) executable_name```
 
 ## Example
-```
+```bash
 cd ~/catkin-ws/src/
 catkin_create_pkg agitr roscpp
 cd ~/catkin-ws/
@@ -34,7 +158,7 @@ int main(int argc, char **argv){
 }
 ```
 In CMakeLists.txt ->
-```
+```bash
 find_package(catkin REQUIRED dependencies roscpp)
 add_executable(hello src/hello.cpp)
 target_link_libraries(hello ${catkin_LIBRARIES})
@@ -44,7 +168,7 @@ In package.xml ->
 <build_depend>roscpp</build_depend><run_depend>roscpp</run_depend>
 ```
 Save all the files.
-``` 
+``` bash
 cd ~/catkin-ws/
 source devel/setup.bash
 catkin_make
@@ -56,11 +180,11 @@ rosrun agitr hello
 
 <hr>
 
-# ROS 2
+# ROS 2: Publisher
 ## How to send randomly-generated velocity commands to a turtlesim turtle?
 
 First, create the required cpp file, write the required code->
-```
+```bash
 #include <ros/ros.h>
 #include <geometry_msgs/Twist.h>
 #include <stdlib.h> //for rand and RAND_MAX
@@ -102,7 +226,7 @@ In package.xml, add ->
   <exec_depend>geometry_msgs</exec_depend>
 ```
 Save all the files.
-``` 
+``` bash
 cd ~/catkin-ws/
 source devel/setup.bash
 catkin_make
@@ -117,10 +241,10 @@ in another terminal obvi rofl
 **Errors faced**<br>
 1. Valid Characters Error => Cannot use ```.``` in the name of the package in cpp file.
 
-# ROS 3
+# ROS 3: Subscriber
 ## Subscribe to pose 
 First, create the required cpp file, write the required code->
-```
+```bash
 #include <ros/ros.h>
 #include <turtlesim/Pose.h>
 #include <iomanip> //for setprecision and setfixed
@@ -148,7 +272,7 @@ add_executable(subscribe_pose src/subscriber.cpp)
 target_link_libraries(subscribe_pose ${catkin_LIBRARIES})
 ```
 Save all the files.
-``` 
+``` bash
 cd ~/catkin-ws/
 source devel/setup.bash
 catkin_make
@@ -257,7 +381,7 @@ Instead of the need to start so many nodes at once in seperate terminals, there 
 ## Remapping - 
 
 To remap names within a launch fie, use a remap element in the node attribute - 
-```
+```bash
 <node pkg="turtlesim" type="turtlesim_node" name="turtlesim" >
     <remap from="turtle1/pose" to="tim" />
 </node>
@@ -351,7 +475,7 @@ Server ---> Client = Response
 So we write a client and server code ->
 
 **CLIENT CODE**-
-```
+```bash
 #include<ros/ros.h>
 #include<turtlesim/Spawn.h>
 
@@ -388,7 +512,7 @@ int main(int argc, char **argv){
 }
 ```
 **SERVER CODE** -
-```
+```bash
 #include <ros/ros.h>
 #include <std_srvs/Empty.h>
 #include <geometry_msgs/Twist.h>
@@ -471,5 +595,3 @@ Records the messages into square.bag file
 **NOTE: If we check the messages published on the /turtle1/pose we say that there is a large in the y coordinates. Its because both turtlesim and rosbag play are publishing on the same topic**
 
 <hr>
-
-# ROS 10 - ROSBAG
