@@ -72,7 +72,7 @@ catkin_make
 
 This will build any packages in the source space (~/catkin_ws) to the build space (~/catkin_ws/build)
 
-<hr>
+---
 
 # ROS Concepts
 
@@ -89,7 +89,7 @@ You should allow the master to continue running for the entire time that you’r
 
 **Most ROS nodes connect to the master when they start up, and do not attempt to reconnect if that connection fails later on. Therefore, if you stop roscore, any other nodes running at the time will be unable to establish new connections, even if you restart roscore later.**
 
-<hr>
+---
 
 
 # ROS Packages
@@ -172,7 +172,7 @@ catkin_make
 rosrun agitr hello
 ```
 
-<hr>
+---
 
 # ROS 2: Publisher
 ## How to send randomly-generated velocity commands to a turtlesim turtle?
@@ -245,7 +245,7 @@ We can also use poseMessageReceive without the ```&``` -> compiler will interpre
 
 **The question of whether to use ros::spinOnce() or ros::spin() comes down to this: Does your program have any repetitive work to do, other than responding to callbacks? If the answer is “No,” then use ros::spin(). If the answer is “Yes,” then a reasonable option is to write a loop that does that other work and calls ros::spinOnce() periodically to process callbacks!**
 
-<hr>
+---
 
 # ROS 4: Logging
 
@@ -296,7 +296,7 @@ name like this:
 To learn the run_id(generated from MAC address and the current time):
 ```rorparam get /run_id```
 
-<hr>
+---
 
 # ROS 5: Graph Resource Names
 
@@ -349,7 +349,7 @@ To remap names within a launch fie, use a remap element in the node attribute -
 <include file="$(find package-name)/launch-file-name" />
 ```
 
-<hr>
+---
 
 # ROS 7: Pararmeters
 
@@ -384,7 +384,7 @@ The C++ interface to ROS parameters is quite straightforward:
 void ros::param::set(parameter_name, input_value);
 bool ros::param::get(parameter_name, output_value);
 
-<hr>
+---
 
 # ROS 8: Services
 
@@ -442,7 +442,7 @@ rosrun turtlesim turtlesim_node
 rosrun agitr publevel_toggle
 rosservice call /toggle_forward
 ```
-<hr>
+---
 
 # ROS 9: Recording and replaying messages using bag files
 
@@ -467,7 +467,7 @@ Records the messages into square.bag file
 
 **NOTE: If we check the messages published on the /turtle1/pose we say that there is a large in the y coordinates. Its because both turtlesim and rosbag play are publishing on the same topic**
 
-<hr>
+---
 
 # ROS 10: OpenCV and ROS
 
@@ -562,10 +562,53 @@ roslaunch agitr image_pub_sub.launch
 ```
 That's it.
 
+# ROS 14: rosserial
+
+If there is a hardware that does not support ROS, then we will need drivers. *Eg: LiDAR's, Depth Cam, etc. have built in drivers so directly compatible with ROS.* 
+> For this reason, rosserial was designed to (integration of microcontrollers and embedded systems into ROS)communicate new hardware with ROS. It is a communication protocol.
+
+*rosserial_client* is designed for microcontrollers and it can run on any processor with ANSI C++ compiler and a serial port connection to a PC running ROS.
+
+## ROS-Side Interfaces
++ rosserial_python: A Python-based implementation
++ rosserial_server: A C++ implementation, recommended for high performance applications
+
+**rosserial_python<-->ROS<--ros messages-->rosserial_arduino**
+
+# ROS 15: ROS on Arduino
+
+Install the rosserial libraries - 
+```
+sudo apt-get install ros-melodic-rosserial-arduino
+sudo apt-get install ros-melodic-rosserial
+```
+Install the required ros_lib library
+to enable Arduino programs to interact with ROS.
+Change directory to the library of your arduino, the following Arduino path is with respect to my system, it might vary for each individual
+```
+cd Arduino/libraries
+rm -rf ros_lib
+rosrun rosserial_arduino make_libraries.py
+```
+Restart your IDE and you should see ros_lib under examples.
+
+### Publishing HelloWorld from Arduino to ROS<sup>[[LINK]](http://wiki.ros.org/rosserial_arduino/Tutorials)</sup> - 
+1. Connect your Arduino to your computer and upload the HelloWorld program from the ros_lib.
+2. Now, we launch the ```roscore``` in a new terminal.
+3. Next, run the rosserial client application that sends the output from Arduino to ROS - 
+```
+rosrun rosserial_python serial_node.py /dev/tty/ACM0
+```
+> Note that your serial port might be different.
+
+4. In a new terminal, run
+```
+rostopic echo chatter
+```
+to see the the messages being published.
+
 ---
 
-##### Source:
-+ [A Gentle Introduction to ROS](https://cse.sc.edu/~jokane/agitr/agitr-letter.pdf)
-+ [Anis Koubaa - ROS Essentials](https://www.udemy.com/course/ros-essentials/)
-+ [Wiki ROS](http://wiki.ros.org/)
-+ and a lot of [stackoverflow](https://stackoverflow.com/)
+# CHEATSHEET
+
+<embed src="ROSCheatSheet.pdf" type="application/pdf">
