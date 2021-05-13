@@ -609,7 +609,4 @@ to see the the messages being published.
 
 ---
 
-# CHEATSHEET
-
-<object data="ROSCheatSheet.pdf" type="application/pdf" width="100%"> 
-</object>
+# [CHEATSHEET](ROSCheatSheet.pdf)
