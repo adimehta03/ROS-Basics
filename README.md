@@ -1,5 +1,33 @@
+# What is ROS?
+
+## First, what it is not:
+
+Robot Operating System, despite its name, is not an operating system. Nor it is really a framework.
+
+ROS is more of a middleware, something like a low-level “framework” based on an existing operating system. The main supported operating system for ROS is Ubuntu. You have to install ROS on your operating system in order to use it.
+
+Robot Operating System is mainly composed of 2 things:
+
++ A core (middleware) with communication tools
++ A set of plug & play libraries
+
+Basically, a middleware is responsible for handling the communication between programs in a distributed system.
+
+When developing a new software you can choose to: A. Develop one code base with everything compiling and running in one block, or B. Create sub programs, one for each sub task/functionality of your application.
+
+Without any suspense, the second option is the best when developing a robotics software. You really need to be able to develop one part of your application (let’s say, a driver for a sensor), and run it without the whole application.
+
+So, you’re now writing many small modules, and they need to communicate between each other. ROS core is here to help you do that.
+
+###### Source: https://roboticsbackend.com/what-is-ros/
+
+
 # Install ROS Melodic on Ubuntu 18.04 - 
-*NOTE: Different Ubuntu Versions support different ROS Distributions. <br>Eg: Ubuntu 16.04 - Kinetic, Ubuntu 18.04 - Melodic and Ubuntu 20.04 - Noetic*
+*NOTE: Different Ubuntu Versions support different ROS Distributions*
+
+> Eg: Ubuntu 16.04 - Kinetic, Ubuntu 18.04 - Melodic and Ubuntu 20.04 - Noetic.
+
+Run the following in a terminal ->
 ```bash
 sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
 
@@ -12,12 +40,13 @@ sudo apt update
 sudo apt install ros-melodic-desktop-full
 ```
 ## Setup Environment
-
 ```bash 
 echo "source /opt/ros/melodic/setup.bash" >> ~/.bashrc
 source ~/.bashrc
 ```
+The reason to add the source in the startup shell script is because ROS depends on the notion of combining spaces using the shell enivronment.
 
+*IF* this ```source  /opt/ros/melodic/setup.bash``` is not added in the bashrc then you have to run this command in every new terminal in order to access the ROS commands. 
 ## Dependenices Required to Build Packages
 ```bash
 sudo apt install python-rosdep python-rosinstall python-rosinstall-generator python-wstool build-essential
@@ -30,6 +59,9 @@ rosdep update
 
 ## Setting up catkin workspace
 
+Essentially, **Catkin** is a bunch of CMake macros(bunch of small programs) that are used to build packages which are used in ROS.
+
+A **catkin workspace** is a folder where you modify, build, and install catkin packages.
 ```bash
 source /opt/ros/melodic/setup.bash
 mkdir ~/catkin_ws/src
@@ -78,10 +110,11 @@ This will build any packages in the source space (~/catkin_ws) to the build spac
 
 ## Master
 One of the basic goals of ROS is to allow developers to write software as a collection of independent small programs that are called as **nodes** that all run simultaneously. 
-<br>
+
 *For example, in a self-driving car, the movement, image processing, etc. run simultaneously during the drive. These are controlled by independent programs called **nodes**.*
 For these nodes to work, they must be able to communicate with each other. This is done through something called as **ROS Master**.
-<br>To start master - 
+
+To start master - 
 ```
 roscore
 ```
@@ -89,12 +122,21 @@ You should allow the master to continue running for the entire time that you’r
 
 **Most ROS nodes connect to the master when they start up, and do not attempt to reconnect if that connection fails later on. Therefore, if you stop roscore, any other nodes running at the time will be unable to establish new connections, even if you restart roscore later.**
 
++ **Nodes**: A node is an executable that uses ROS to communicate with other nodes.
+
++ **Messages**: ROS data type used when subscribing or publishing to a topic.
+
++ **Topics**: Nodes can publish messages to a topic as well as subscribe to a topic to receive messages.
+
++ **Services**: Services are another way that nodes can communicate with each other. Services allow nodes to send a request and receive a response.
+
++ **Parameters**: ```rosparam``` allows you to store and manipulate data on the ROS Parameter Server. The Parameter Server can store integers, floats, boolean, dictionaries, and lists.
 ---
 
 
-# ROS Packages
+# [ROS Packages](http://wiki.ros.org/catkin/workspaces)
 
-## What makes up a catkin package?
+## What makes up a [catkin package](http://wiki.ros.org/ROS/Tutorials/CreatingPackage)?
 
 ```
 my_package/
@@ -105,7 +147,7 @@ my_package/
 `package.xml` provides meta information about the package(name, version, maintainer, and dependencies).
 `CMakeLists.txt` contains build instructions for CMake, and must use catkin CMake variables.
 
-## Recommended development flow
+## Recommended development flow<sup>[[LINK]](http://wiki.ros.org/ROS/Tutorials/NavigatingTheFilesystem)</sup>
 
 Maintain a single development workspace, called 'catkin workspace', containing all catkin packages. Aliased as `catkin_ws` by `setup.bash` (see next section).
 
@@ -120,24 +162,59 @@ workspace_folder/        -- WORKSPACE
     package_n/
       CMakeLists.txt     -- CMakeLists.txt file for package_n
       package.xml        -- Package manifest for package_n
+    
+    build/                  -- BUILD SPACE
+      CATKIN_IGNORE         -- Keeps catkin from walking this directory
+    devel/                  -- DEVELOPMENT SPACE (set by CATKIN_DEVEL_PREFIX)
+      bin/
+      etc/
+      include/
+      lib/
+      share/
+      .catkin
+      env.bash
+      setup.bash
+      setup.sh
+    ...
+    install/                -- INSTALL SPACE (set by CMAKE_INSTALL_PREFIX)
+      bin/
+      etc/
+      include/
+      lib/
+      share/
+      .catkin             
+      env.bash
+      setup.bash
+      setup.sh
+    ...
 ```
 
 # ROS 1: Hello World in ROS!
 First create your workspace, after creating workspace go to src and use 
 ```catkin_create_pkg package-name dependenices seperated by space```
-and go back to root and do ```source devel/setup.bash```, after which run ```catkin_make```.
-<br>**NOTE:** The difference between CPP and PY files is that for CPP you have to include the excec in the CMake so that the compiler knows it is a CPP file to be converted to an executable. If it is a PY file then you don't have to do anything except for making the file executable by using the following command <br>```chmod 777 **$path/to/file**```<br>
-Go to CMakeLists.txt -> <br>
+and go back to root and do ```source devel/setup.bash```
+
+By sourcing your setup.bash file, you are adding several environment variables that ROS needs in order to work, after which run ```catkin_make```.
+
+**NOTE:** The difference between CPP and PY files is that for CPP you have to include the excec in the CMake so that the compiler knows it is a CPP file to be converted to an executable. If it is a PY file then you don't have to do anything except for making the file executable by using the following command
+
+```chmod 777 **$path/to/file**```
+
+Go to CMakeLists.txt -> 
 ```
 find_package(catkin REQUIRED dependencies like roscpp rospy)
 add_executable(executable_name relative-path to the source-file)
 target_link_libraries(executable_name ${catkin_LIBRARIES})
 ```
-Go to package.xml -><br>
-```<build_depend>package-name</build_depend><run_depend>package-name</run_depend>```
-<br>package-name means dependencies here - roscpp 
+Go to package.xml ->
 
- Once this is done, then we can run roscore and rosrun for the respective publisher and subscriber.<br>```rosrun package-name(project name) executable_name```
+```<build_depend>package-name</build_depend><run_depend>package-name</run_depend>```
+
+package-name means dependencies here - roscpp 
+
+ Once this is done, then we can run roscore and rosrun for the respective publisher and subscriber.
+ 
+```rosrun package-name(project name) executable_name```
 
 ## Example
 ```bash
@@ -174,7 +251,8 @@ rosrun agitr hello
 
 ---
 
-# ROS 2: Publisher
+# ROS 2: Publisher:
+"Node" is the ROS term for an executable that is connected to the ROS network. Here we'll create the publisher ("talker") node which will continually broadcast a message.
 ## How to send randomly-generated velocity commands to a turtlesim turtle?
 
 First, create the required cpp file, write the required [code](src/random_vel.cpp)->
@@ -197,24 +275,26 @@ cd ~/catkin-ws/
 source devel/setup.bash
 catkin_make
 ```
-```roscore``` in a seperate terminal<br>
+```roscore``` in a seperate terminal
+
 ```rosrun turtlesim turtlesim_node``` in another terminal and finally 
 ```
 rosrun agitr randomv
 ```
 in another terminal obvi rofl
 
-**Errors faced**<br>
+**Errors faced**
 1. Valid Characters Error => Cannot use ```.``` in the name of the package in cpp file.
 
-# ROS 3: Subscriber
+# ROS 3: Subscriber:
+As the name suggests it subscribes to a topic that has a publisher publishing message. So essentially, a subscriber can access these published messages without the need to having know who is publishing it.
 ## Subscribe to pose 
 First, create the required cpp file, write the required [code](src/subscriber.cpp)->
 
 While creating a ros::Subscriber object, we do not explicitly
 mention the message type anywhere. The C++ compiler infers the correct message type based on the data type of the callback
 function pointer we provide, i.e, poseMessageRececive
-<br>
+
 
 ### Go to the CMakeLists ->
 ```
@@ -227,7 +307,8 @@ cd ~/catkin-ws/
 source devel/setup.bash
 catkin_make
 ```
-```roscore``` in a seperate terminal<br>
+```roscore``` in a seperate terminal
+
 ```rosrun turtlesim turtlesim_node``` in another terminal and finally 
 ```
 rosrun agitr subscribe_pose
@@ -238,7 +319,7 @@ rosrun agitr randomv
 ```
 in another terminal :)
 
-**Errors faced**<br>
+**Errors faced**
 1. Initially used poseMessageReceive() instead of a pointer: Basically we use pointer because we only want the address of the function and not actually want to call the function!
 
 We can also use poseMessageReceive without the ```&``` -> compiler will interpret it as a pointer itself!
@@ -292,7 +373,8 @@ rqt_console
 2. The third and final destination for log messages is a log file generated by the rosout node.
 As part of its callback function for the /rosout topic, this node writes a line to a file with a
 name like this:
-```∼/.ros/log/run_id/rosout.log```<br>
+```∼/.ros/log/run_id/rosout.log```
+
 To learn the run_id(generated from MAC address and the current time):
 ```rorparam get /run_id```
 
@@ -301,7 +383,8 @@ To learn the run_id(generated from MAC address and the current time):
 # ROS 5: Graph Resource Names
 
 ## These are essentially names of topics, nodes, services and pararmeters, and how ROS resolves this realtive naming system
-> default_namespace + relative_name = globalname <br> 
+> default_namespace + relative_name = globalname 
+
 /turtle1 + cmd_vel = /turtle1/cmd_vel
 
 Private Names - begin with tilde symbol -> The difference is that, instead of using the current default namespace, private
@@ -355,8 +438,11 @@ To remap names within a launch fie, use a remap element in the node attribute -
 
 The idea is that a centralized parameter
 server keeps track of a collection of values—things like integers, floating point numbers,
-strings, or other data—each identified by a short string name.<br>
-The parameter is actually a part of the master, so it is started automatically when roscore and roslaunch.<br>
+strings, or other data—each identified by a short string name.
+
+The parameter is actually a part of the master, so it is started automatically when roscore and roslaunch.
+
+
 To get information about the parameters use ->
 ```
 rosparam get /
@@ -611,4 +697,4 @@ to see the the messages being published.
 
 # [CHEATSHEET](ROSCheatSheet.pdf)
 
-##### Source: Willow Garage 
+##### Source: William Garage
