@@ -85,7 +85,7 @@ echo $ROS_PACKAGE_PATH # make sure proper environment variables set
 
 ```bash
 cd ~/catkin_ws/src
-# catkin_create_pkg <package_name> [depend1] [depend2] [depend3]
+catkin_create_pkg <package_name> [depend1] [depend2] [depend3]
 cd ~/catkin_ws
 catkin_make
 ```
