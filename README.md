@@ -102,7 +102,7 @@ Sourcing built workspace to ROS environment:
 catkin_make
 ```
 
-This will build any packages in the source space (~/catkin_ws) to the build space (~/catkin_ws/build)
+This will build any packages in the source space ```(~/catkin_ws)``` to the build space ```(~/catkin_ws/build)```
 
 ---
 
