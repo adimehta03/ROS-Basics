@@ -2,7 +2,7 @@
 
 ## First, what it is not:
 
-Robot Operating System, despite its name, is neither an operating system nor is really a framework.
+Robot Operating System, despite its name, is neither an operating system nor is a framework.
 
 ROS is more of a middleware, something like a low-level “framework” based on an existing operating system. The main supported operating system for ROS is Ubuntu. You have to install ROS on your operating system in order to use it.
 
