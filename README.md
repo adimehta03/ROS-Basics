@@ -189,6 +189,12 @@ workspace_folder/        -- WORKSPACE
     ...
 ```
 
+# ROS 0: Introduction to Turtlesim -
+Turtlesim is a lightweight simulator for learning ROS. It illustrates what ROS does at the most basic level, to give you an idea of what you will do with a real robot or robot simulation later on.
+
+## Getting started with Turtlesim - 
+Refer: https://wiki.ros.org/ROS/Tutorials/UnderstandingNodes 
+
 # ROS 1: Hello World in ROS!
 First create your workspace, after creating workspace go to src and use 
 ```catkin_create_pkg package-name dependenices seperated by space```
